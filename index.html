@@ -4,13 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fashion Prompt Generator</title>
-<link rel="manifest" href="./manifest.webmanifest">
+<link rel="manifest" href="/fashion-prompt-generator/manifest.webmanifest">
 <meta name="theme-color" content="#0a0c0f">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Fashion Prompt">
-<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="/fashion-prompt-generator/icon-192.png">
 <style>
 *{box-sizing:border-box}
 :root{--bg:#f3f4f6;--text:#17191c;--muted:#6b7280;--card:#ffffff;--border:#e3e6ea;--input:#fafafa;--thumb:#f4f5f6;--accent:#111827;--accentText:#fff;--shadow:0 14px 40px rgba(15,23,42,.08)}
@@ -447,7 +447,7 @@ async function installApp(){
   if (b) b.style.display = 'none';
 }
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(() => {}));
+  window.addEventListener('load', () => navigator.serviceWorker.register('/fashion-prompt-generator/service-worker.js', {scope: '/fashion-prompt-generator/'}).catch(() => {}));
 }
 </script>
 </body>
