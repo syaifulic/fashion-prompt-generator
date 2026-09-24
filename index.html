@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fashion Prompt Generator</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#0a0c0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fashion Prompt">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<style>
+*{box-sizing:border-box}
+:root{--bg:#f3f4f6;--text:#17191c;--muted:#6b7280;--card:#ffffff;--border:#e3e6ea;--input:#fafafa;--thumb:#f4f5f6;--accent:#111827;--accentText:#fff;--shadow:0 14px 40px rgba(15,23,42,.08)}
+body.dark{--bg:#0a0c0f;--text:#eef1f4;--muted:#929aa5;--card:#12161b;--border:#252c34;--input:#0d1014;--thumb:#1a1f25;--accent:#f1f3f5;--accentText:#101216;--shadow:0 16px 45px rgba(0,0,0,.28)}
+body{margin:0;font-family:Inter,Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text);transition:background .25s,color .25s}
+.container{max-width:1100px;margin:0 auto;padding:26px 18px 40px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:20px}
+.brand{font-weight:800;font-size:18px;color:var(--text)}
+.theme-toggle{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:999px;padding:9px 13px;cursor:pointer;box-shadow:none;margin:0;font-size:13px;font-weight:700}
+h1{margin:0 0 6px;font-size:30px;letter-spacing:-.5px;color:var(--text)}
+.subtitle{margin:0 0 24px;color:var(--muted);line-height:1.5}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:var(--shadow);transition:background .25s,border .25s}
+h2{font-size:17px;margin:0 0 13px;color:var(--text)}
+.refbox{border:1px dashed var(--border);border-radius:13px;padding:18px;text-align:center;color:var(--muted);background:var(--input)}
+.refbox input{margin-top:10px;width:100%;color:var(--text)}
+.preview{max-width:100%;max-height:230px;margin-top:12px;border-radius:10px;display:none}
+.options{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.option{border:1px solid var(--border);border-radius:11px;padding:6px;background:var(--card);cursor:pointer;text-align:center;transition:.16s}
+.option:hover{transform:translateY(-1px);border-color:#9aa3ad}
+.option.active{border:2px solid var(--text);padding:5px;background:var(--input)}
+.option-title{font-size:12px;font-weight:750;margin:2px 0 3px;color:var(--text);line-height:1.25}
+.option-desc{font-size:10.5px;color:var(--muted);line-height:1.3}
+.accessory-options{grid-template-columns:repeat(5,1fr)}
+.accessory-thumb{object-fit:contain;background:var(--thumb)}
+.accessory-photo{background:#f7f7f7;padding:4px;object-fit:contain}
+.category-divider{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin:12px 0 1px}
+.category-divider::before,.category-divider::after{content:"";height:1px;background:var(--border);flex:1}
+.category-divider span{font-size:11px;font-weight:800;letter-spacing:1.1px;color:var(--muted);text-transform:uppercase;white-space:nowrap;background:var(--input);padding:5px 10px;border-radius:999px;border:1px solid var(--border)}
+.pants-thumb{width:100%;height:78px;object-fit:cover;object-position:center;border-radius:8px;margin-bottom:6px;background:var(--thumb);display:block}
+textarea{width:100%;min-height:280px;border:1px solid var(--border);background:var(--input);color:var(--text);border-radius:12px;padding:14px;font:13px/1.5 monospace;resize:vertical}
+button{border:0;border-radius:10px;padding:10px 15px;background:var(--accent);color:var(--accentText);cursor:pointer;margin-right:7px;font-weight:700}
+button.secondary{background:var(--input);color:var(--text);border:1px solid var(--border)}
+.controls{margin-top:12px}.controls button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.full{grid-column:1/-1}.small{font-size:12px;color:var(--muted);line-height:1.45}
+@media(max-width:900px){.accessory-options{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:750px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.options{grid-template-columns:repeat(2,1fr)}.accessory-options{grid-template-columns:repeat(3,1fr)}.topbar{align-items:flex-start}}
+@media(max-width:480px){.accessory-options{grid-template-columns:repeat(2,1fr)}h1{font-size:25px}}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="topbar"><div class="brand">arrastyle.co 🐣</div><div style="display:flex;gap:8px;align-items:center"><button id="installBtn" class="theme-toggle" style="display:none" onclick="installApp()">📲 Install App</button><button id="themeToggle" class="theme-toggle" onclick="toggleTheme()">☀️ Light</button></div></div><h1>Fashion Prompt Generator</h1>
+<p class="subtitle">Tampilkan referensi atasan sebagai preview outfit, pilih celana dan aksesoris opsional, lalu copy prompt siap pakai.</p>
+
+<div class="grid">
+<section class="card">
+<h2>1. Foto Referensi Atasan</h2>
+<div class="refbox">
+<label>Pilih foto baju/atasan referensi</label>
+<input id="topRef" type="file" accept="image/*">
+<img id="preview" class="preview">
+</div>
+<p class="small">Foto ini <b>hanya untuk display/preview</b> dan tidak dimasukkan ke dalam teks prompt. Saat prompt digunakan bersama foto asli sebagai <b>Gambar 1</b>, foto atasan ini menjadi <b>Gambar 2</b> sebagai referensi untuk mengganti atasan.</p>
+</section>
+
+<section class="card">
+<h2>2. Pilih Celana <span class="small">(Opsional)</span></h2>
+<p class="small" style="margin:-6px 0 12px">Shortpants outdoor mengikuti gaya santai-outdoor: pinggang karet + tali serut, potongan relaxed, ringan, nyaman, dan ujung celana berada di atas lutut. Cargo 3/4 memiliki kantong cargo fungsional dan panjang sekitar pertengahan betis.</p>
+<div id="options" class="options"></div>
+</section>
+
+<section class="card full">
+<h2>3. Pilih Aksesoris <span class="small">(Opsional)</span></h2>
+<p class="small" style="margin:-6px 0 12px">Pilih cincin, kacamata, dan/atau jam tangan. Semua pilihan bersifat opsional. Jam tangan dipakai untuk mengganti jam tangan pada foto model utama dengan desain pria yang clean, elegan, dan proporsional.</p>
+<div id="accessories" class="options accessory-options"></div>
+<div class="category-divider"><span>Jam Tangan Pria</span></div>
+<div id="watchOptions" class="options accessory-options"></div>
+</section>
+
+<section class="card full">
+<h2>4. Prompt</h2>
+<textarea id="prompt" readonly placeholder="Upload foto referensi atasan terlebih dahulu. Prompt default akan mengganti atasan menggunakan Gambar 2; celana dan aksesoris bersifat opsional."></textarea>
+<div class="controls">
+<button id="copyBtn" onclick="copyPrompt()" disabled>📋 Copy Prompt</button>
+<button class="secondary" onclick="resetAll()">Reset</button>
+</div>
+<p id="status" class="small"></p>
+</section>
+</div>
+</div>
+
+<script>
+function shortSVG(color){
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 210"><rect width="320" height="210" rx="20" fill="#f4f4f4"/><path d="M85 52 Q160 42 235 52 L222 83 L211 164 Q208 177 193 177 L160 177 L127 177 Q112 177 109 164 L98 83 Z" fill="${color}"/><path d="M98 83 Q160 95 222 83" fill="none" stroke="#333" stroke-opacity=".22" stroke-width="3"/><path d="M145 53 L145 70 M175 53 L175 70" stroke="#eee" stroke-width="3"/><path d="M145 70 Q160 78 175 70" fill="none" stroke="#eee" stroke-width="3"/><path d="M108 95 Q91 110 86 130" fill="none" stroke="#333" stroke-opacity=".28" stroke-width="4"/><path d="M212 95 Q229 110 234 130" fill="none" stroke="#333" stroke-opacity=".28" stroke-width="4"/></svg>`;
+ return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
+}
+function pantsFallbackSVG(name){
+ const n=name.toLowerCase();
+ let color="#777";
+ if(n.includes("hitam")||n.includes("black")) color="#171717";
+ else if(n.includes("putih")||n.includes("white")) color="#f3f3f0";
+ else if(n.includes("cream")) color="#e7dcc6";
+ else if(n.includes("khaki")) color="#a28b64";
+ else if(n.includes("abu")||n.includes("gray")||n.includes("grey")) color="#777d84";
+ else if(n.includes("biru")||n.includes("blue")) color="#31547b";
+ else if(n.includes("coklat")||n.includes("brown")) color="#76543c";
+ else if(n.includes("olive")) color="#66734b";
+ else if(n.includes("navy")) color="#233754";
+ else if(n.includes("maroon")) color="#6d2634";
+ const isShort=n.includes("shortpants");
+ const isCargo=n.includes("cargo");
+ const bg="#f1f2f3";
+ let garment;
+ if(isShort){
+   garment=`<path d="M88 55 Q160 45 232 55 L220 91 L211 157 Q208 171 194 171 L160 171 L126 171 Q112 171 109 157 L100 91 Z" fill="${color}"/><path d="M100 91 Q160 101 220 91" fill="none" stroke="#222" stroke-opacity=".2" stroke-width="3"/><path d="M146 55 L146 72 M174 55 L174 72 M146 72 Q160 79 174 72" fill="none" stroke="#eee" stroke-width="3"/>`;
+ } else if(isCargo){
+   garment=`<path d="M82 45 Q160 36 238 45 L219 173 Q216 184 202 184 L118 184 Q104 184 101 173 Z" fill="${color}"/><path d="M103 82 L145 78 L144 121 L101 118 Z M175 78 L217 82 L219 118 L176 121 Z" fill="${color}" stroke="#222" stroke-width="3"/><path d="M146 47 L146 66 M174 47 L174 66 M146 66 Q160 73 174 66" fill="none" stroke="#ddd" stroke-width="3"/>`;
+ } else {
+   garment=`<path d="M82 42 Q160 32 238 42 L218 177 Q215 187 201 187 L119 187 Q105 187 102 177 Z" fill="${color}"/><path d="M145 45 L145 66 M175 45 L175 66 M145 66 Q160 73 175 66" fill="none" stroke="#ddd" stroke-width="3"/>`;
+ }
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 210"><rect width="320" height="210" rx="18" fill="${bg}"/>${garment}</svg>`;
+ return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
+}
+
+function cargoSVG(color){
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 210"><rect width="320" height="210" rx="20" fill="#20252b"/><path d="M78 45 Q160 35 242 45 L220 170 Q216 182 202 182 L118 182 Q104 182 100 170 Z" fill="${color}"/><path d="M104 82 L146 78 L145 120 L101 118 Z" fill="${color}" stroke="#222" stroke-width="3"/><path d="M174 78 L218 82 L219 118 L175 120 Z" fill="${color}" stroke="#222" stroke-width="3"/><path d="M145 48 L145 66 M175 48 L175 66" stroke="#ddd" stroke-width="3"/><path d="M145 66 Q160 73 175 66" fill="none" stroke="#ddd" stroke-width="3"/></svg>`;
+ return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
+}
+const pants=[
+["Formal Hitam","black formal trousers","https://www.vishalmegamart.com/dw/image/v2/BGHT_PRD/on/demandware.static/-/Sites-vmm-apparel-master-catalog/default/dw0e228052/images/large/1112044651003.jpg?sh=140&sw=140","clean tailored fit, realistic formal fabric texture"],
+["Formal Cream","cream-colored formal trousers","https://imagescdn.vanheusenindia.com/img/app/product/3/39662360-13492565.jpg?auto=format&w=390","clean tailored fit, realistic formal fabric texture"],
+["Formal Abu","gray formal trousers","https://image.made-in-china.com/2f0j00JNOEAuwPQWkL/Custom-Design-Bulk-High-Quality-Non-Iron-Wrinkle-Free-Formal-Men-s-Pants.webp","clean tailored fit, realistic smooth formal fabric texture"],
+["Chinos Khaki","khaki chinos","https://www.careofcarl.co.uk/bilder/artiklar/600x600_grey_4_5/28069911r.jpg","clean natural fit, authentic cotton twill texture"],
+["Chinos Cream","cream-colored chinos","https://levi.in/cdn/shop/files/A82940000_01_Style_Shot_c5444743-3b1a-411c-9fbf-5856a6fc3dd6.jpg?v=1712743193&width=1445","clean natural fit, authentic cotton twill texture"],
+["Chinos Putih","white chinos","https://image.uniqlo.com/UQ/ST3/id/imagesgoods/455531/item/idgoods_455531.jpg","clean natural fit, authentic cotton twill texture"],
+["Chinos Abu","gray chinos","https://assets.central.co.th/marksspencer-menchinosregularfitstretch-CDS14906213-1?%24JPEG%24=&wid=550","clean natural fit, authentic cotton twill texture"],
+["Chinos Hitam","black chinos","https://pantproject.com/cdn/shop/files/DSC8461_911c0115-d98b-42f1-8499-c24592c2cc5a.jpg?v=1744796712&width=1080","clean natural fit, authentic cotton twill texture"],
+["Jeans Biru","blue denim jeans","https://bonobos.com/cdn/shop/files/Denim_Blue_Jean_19511-BLJ89_1_6efa2067-a7cb-4db4-8154-13b4b6b742c0.jpg?v=1785994285&width=600","natural modern fit, authentic denim texture"],
+["Black Denim","black denim jeans","https://image.hm.com/assets/hm/98/95/9895bda40e87ba0de3bbc035c673f9215d2258eb.jpg","natural modern fit, authentic black denim texture"],
+["Jeans Abu","gray denim jeans","https://assets.ajio.com/medias/sys_master/root/20240215/AgNz/65ce32b605ac7d77bb5c200e/-473Wx593H-410478773-6685-MODEL.jpg","natural modern fit, authentic gray denim texture"],
+["Corduroy Cream","cream-colored corduroy pants","https://image.hm.com/assets/hm/22/8c/228c143432ad950051d523cf26d8c0982982ee34.jpg?imwidth=2160","clean modern fit, authentic ribbed corduroy texture"],
+["Corduroy Coklat","brown corduroy pants","https://cdn-images.farfetch-contents.com/30/58/63/31/30586331_59590669_600.jpg","clean modern fit, authentic ribbed corduroy texture"],
+["Corduroy Hitam","black corduroy pants","https://media.arket.com/assets/006/f8/ba/f8ba51e23a86d3fea1a568f0e656e94be3c260ff_xxl-1.jpg","clean modern fit, authentic ribbed corduroy texture"],
+["Shortpants Outdoor Hitam","black relaxed above-knee shorts","shortSVG('#111111')","elastic waistband with drawstring, curved front pockets, lightweight soft fabric, relaxed straight-leg opening, clearly above-knee"],
+["Shortpants Outdoor Abu","gray relaxed above-knee shorts","shortSVG('#777777')","elastic waistband with drawstring, curved front pockets, lightweight soft fabric, relaxed straight-leg opening, clearly above-knee"],
+["Shortpants Outdoor Olive","olive relaxed above-knee shorts","shortSVG('#66734b')","elastic waistband with drawstring, curved front pockets, lightweight soft fabric, relaxed straight-leg opening, clearly above-knee"],
+["Shortpants Outdoor Navy","navy relaxed above-knee shorts","shortSVG('#1d2f4f')","elastic waistband with drawstring, curved front pockets, lightweight soft fabric, relaxed straight-leg opening, clearly above-knee"],
+["Shortpants Outdoor Maroon","maroon relaxed above-knee shorts","shortSVG('#6d2634')","elastic waistband with drawstring, curved front pockets, lightweight soft fabric, relaxed straight-leg opening, clearly above-knee"],
+["Shortpants Outdoor Coklat","brown relaxed above-knee shorts","shortSVG('#76533b')","elastic waistband with drawstring, curved front pockets, lightweight soft fabric, relaxed straight-leg opening, clearly above-knee"],
+["Shortpants Outdoor Cream","cream relaxed above-knee shorts","shortSVG('#e8dcc5')","elastic waistband with drawstring, curved front pockets, lightweight soft fabric, relaxed straight-leg opening, clearly above-knee"],
+["Cargo 3/4 Hitam","black men's cargo 3/4 pants","cargoSVG('#171717')","relaxed straight fit, durable cotton-twill fabric, functional side cargo pockets, adjustable details, hem ending around mid-calf"],
+["Cargo 3/4 Olive","olive men's cargo 3/4 pants","cargoSVG('#596344')","relaxed straight fit, durable cotton-twill fabric, functional side cargo pockets, adjustable details, hem ending around mid-calf"],
+["Cargo 3/4 Khaki","khaki men's cargo 3/4 pants","cargoSVG('#a18b63')","relaxed straight fit, durable cotton-twill fabric, functional side cargo pockets, adjustable details, hem ending around mid-calf"],
+];
+
+const options=document.getElementById("options");
+const accessoryOptions=document.getElementById("accessories");
+const promptBox=document.getElementById("prompt");
+const status=document.getElementById("status");
+let selectedPants=null;
+let selectedAccessory=null;
+let selectedWatch=null;
+let topReferenceSelected=false;
+
+const accessories=[
+ {name:"Tanpa Aksesoris",type:"none",desc:"Tanpa cincin atau kacamata",icon:"none"},
+ {name:"Cincin Silver",type:"ring",desc:"Satu cincin silver minimalis",icon:"silver"},
+ {name:"Cincin Hitam",type:"ring",desc:"Satu cincin hitam matte",icon:"black"},
+ {name:"Cincin Gold",type:"ring",desc:"Satu cincin emas minimalis",icon:"gold"},
+ {name:"Kacamata Rectangular",type:"glasses",desc:"Frame hitam rectangular minimalis",icon:"rect",img:"https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8b/Black_Titanium_Frame_Eyeglasses%2C_JINS_MTF-16S-151B%2C_1.jpg/960px-Black_Titanium_Frame_Eyeglasses%2C_JINS_MTF-16S-151B%2C_1.jpg"},
+ {name:"Kacamata Clear",type:"glasses",desc:"Frame transparan clean",icon:"clear",img:"https://www.viewner.com/image/cache/catalog/T6528C/1-800x800.jpg"},
+ {name:"Kacamata Round",type:"glasses",desc:"Frame bulat minimalis",icon:"round",img:"https://sunseteyewear.com/cdn/shop/files/PC203138C1_2119a1fc-c847-450a-9c78-65ebef0ad3c9.jpg?v=1757313317&width=1200"},
+ {name:"Sunglasses Aviator",type:"sunglasses",desc:"Aviator metal klasik",icon:"aviator",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Aviator_sunglasses_2.jpg/960px-Aviator_sunglasses_2.jpg"},
+ {name:"Sunglasses Wayfarer",type:"sunglasses",desc:"Wayfarer hitam klasik",icon:"wayfarer",img:"https://upload.wikimedia.org/wikipedia/commons/f/fd/Ray_Ban_Original_Wayfarer.jpg"}
+];
+
+accessories[0].prompt="Do not add any ring, glasses, sunglasses, or other accessories.";
+accessories[1].prompt="Add one simple silver ring on one naturally visible finger, with realistic metallic reflections and correct finger anatomy.";
+accessories[2].prompt="Add one simple matte black ring on one naturally visible finger, with realistic scale, reflections, and correct finger anatomy.";
+accessories[3].prompt="Add one simple gold ring on one naturally visible finger, with realistic metallic reflections and correct finger anatomy.";
+accessories[4].prompt="Add understated black rectangular eyeglasses on the man's face, with a clean minimalist premium design; avoid oversized frames, flashy styling, unusual colors, or exaggerated fashion details. Correctly align the glasses with his eyes, ears, nose bridge, and facial perspective.";
+accessories[5].prompt="Add clean minimalist transparent-frame eyeglasses on the man's face, subtle and premium-looking; avoid oversized frames, flashy styling, or exaggerated fashion details. Correctly align the glasses with his eyes, ears, nose bridge, and facial perspective.";
+accessories[6].prompt="Add a refined minimalist round-frame eyeglasses style on the man's face, subtle and modern rather than costume-like; avoid oversized frames or exaggerated styling. Correctly align the glasses with his eyes, ears, nose bridge, and facial perspective.";
+accessories[7].prompt="Add understated classic metal aviator sunglasses on the man's face, with a refined everyday design; avoid oversized lenses, flashy colors, mirrored effects, or exaggerated styling. Correctly align the sunglasses with his eyes, ears, nose bridge, and facial perspective, with realistic lens reflections.";
+accessories[8].prompt="Add classic black wayfarer sunglasses on the man's face, clean and understated with a premium everyday look; avoid oversized frames, flashy colors, or exaggerated styling. Correctly align the sunglasses with his eyes, ears, nose bridge, and facial perspective, with realistic lens reflections.";
+
+const watches=[
+ {name:"Tanpa Jam Tangan",desc:"Tidak menggunakan jam tangan",img:null,prompt:"Remove the man's existing wristwatch completely. Do not add any watch or smartwatch to either wrist."},
+ {name:"Smartwatch Square Black",desc:"Smartwatch kotak hitam minimalis",img:"https://www.apple.com/id/newsroom/2024/09/introducing-apple-watch-series-10/images/overview/hero/hero__f6w2j1j5j3q2_large.jpg",prompt:"Replace the man's existing wristwatch with a refined men's black square smartwatch with a slim modern case, understated black band, clean dark display, realistic glass reflections, natural proportions, and an elegant minimalist appearance."},
+ {name:"Smartwatch Round Black",desc:"Smartwatch bulat hitam clean",img:null,prompt:"Replace the man's existing wristwatch with a refined men's round smartwatch featuring a black case, black strap, clean dark display, subtle bezel, realistic glass reflections, natural proportions, and a clean understated appearance."},
+ {name:"Smartwatch Sport Black",desc:"Smartwatch sporty minimal dengan strap hitam",img:null,prompt:"Replace the man's existing wristwatch with a sleek men's sport smartwatch featuring a compact black case, black silicone strap, simple dark display, realistic material texture, natural proportions, and a clean modern appearance without flashy colors."},
+ {name:"Jam Stainless Steel Black Dial",desc:"Stainless steel bracelet, black dial, clean classic",img:"https://www.kulta-center.com/media/catalog/product/cache/7ba5217dff96546b8bc39ed6e680afde/g/p/gp316002.jpg",prompt:"Replace the man's existing wristwatch with a clean classic men's stainless-steel bracelet watch with a black dial, refined silver markers and hands, realistic metal reflections, natural proportions, and an understated elegant appearance."},
+ {name:"Jam Leather Hitam Minimalis",desc:"Black leather strap, black dial, dressy minimal",img:"https://timeaccess-store.com/cdn/shop/files/RA-AP0005B10B_fs.jpg?v=1733387647&width=1080",prompt:"Replace the man's existing wristwatch with a refined men's minimalist dress watch featuring a black leather strap, slim silver-tone case, clean black dial, subtle markers, and realistic leather and metal texture. Keep it elegant and understated."},
+ {name:"Jam Leather Coklat",desc:"Brown leather strap, classic elegant",img:"https://www.davidjones.com/productimages/magnify/1/2945685_24288503_21896561.jpg",prompt:"Replace the man's existing wristwatch with a refined men's watch featuring a brown leather strap, silver-tone round case, clean light dial, subtle classic detailing, realistic leather grain, and understated elegance."},
+ {name:"Jam Chronograph Stainless",desc:"Stainless bracelet, black chronograph dial",img:"https://www.keskisenkello.fi/media/catalog/product/5/8/58744-1.jpg",prompt:"Replace the man's existing wristwatch with a sophisticated men's stainless-steel chronograph watch with a black dial, restrained subdials, polished metal case and bracelet, realistic reflections, and a premium but not flashy appearance."},
+ {name:"Jam Mesh Silver Black Dial",desc:"Silver mesh bracelet, black dial, modern clean",img:"https://bijouterie-chichkhane.com/15022-large_default/calvin-klein-k2g2g121.jpg",prompt:"Replace the man's existing wristwatch with a modern men's silver-tone mesh-style bracelet watch with a clean black dial, slim round case, subtle markers, realistic metal texture, and understated contemporary elegance."},
+ {name:"Jam All Black",desc:"Black case, black bracelet, monochrome elegant",img:"https://cdn2.jomashop.com/media/catalog/product/cache/fde19e4197824625333be074956e7640/c/a/calvin-klein-high-noon-quartz-black-dial-mens-watch-k8m21421.jpg?height=546&width=546",prompt:"Replace the man's existing wristwatch with a sophisticated all-black men's wristwatch: black case, black bracelet, black dial, minimal markers, subtle matte and satin metal surfaces, realistic proportions, and a clean understated luxury aesthetic."}
+];
+
+function accessorySVG(icon){
+ const common=`<rect width="320" height="210" rx="20" fill="#f4f4f4"/>`;
+ let art="";
+ if(icon==="none") art=`<text x="160" y="120" text-anchor="middle" font-family="Arial" font-size="52" fill="#777">—</text>`;
+ if(icon==="silver") art=`<circle cx="160" cy="105" r="48" fill="none" stroke="#aeb4bc" stroke-width="18"/><circle cx="160" cy="105" r="27" fill="#f4f4f4"/>`;
+ if(icon==="black") art=`<circle cx="160" cy="105" r="48" fill="none" stroke="#202020" stroke-width="18"/><circle cx="160" cy="105" r="27" fill="#f4f4f4"/>`;
+ if(icon==="gold") art=`<circle cx="160" cy="105" r="48" fill="none" stroke="#c9a227" stroke-width="18"/><circle cx="160" cy="105" r="27" fill="#f4f4f4"/>`;
+ if(icon==="rect") art=`<rect x="55" y="70" width="82" height="55" rx="10" fill="none" stroke="#202020" stroke-width="9"/><rect x="183" y="70" width="82" height="55" rx="10" fill="none" stroke="#202020" stroke-width="9"/><path d="M137 86 Q160 75 183 86" fill="none" stroke="#202020" stroke-width="8"/>`;
+ if(icon==="clear") art=`<rect x="55" y="70" width="82" height="55" rx="10" fill="#ffffff88" stroke="#8d969f" stroke-width="7"/><rect x="183" y="70" width="82" height="55" rx="10" fill="#ffffff88" stroke="#8d969f" stroke-width="7"/><path d="M137 86 Q160 75 183 86" fill="none" stroke="#8d969f" stroke-width="7"/>`;
+ if(icon==="round") art=`<circle cx="100" cy="100" r="40" fill="none" stroke="#202020" stroke-width="8"/><circle cx="220" cy="100" r="40" fill="none" stroke="#202020" stroke-width="8"/><path d="M140 88 Q160 78 180 88" fill="none" stroke="#202020" stroke-width="8"/>`;
+ if(icon==="aviator") art=`<path d="M45 75 Q95 55 145 78 L135 128 Q95 145 60 125 Z" fill="#30343a" stroke="#b6b6b6" stroke-width="7"/><path d="M175 78 Q225 55 275 75 L260 125 Q225 145 185 128 Z" fill="#30343a" stroke="#b6b6b6" stroke-width="7"/><path d="M145 85 Q160 75 175 85" fill="none" stroke="#b6b6b6" stroke-width="7"/>`;
+ if(icon==="wayfarer") art=`<path d="M45 70 L140 75 L130 130 Q90 145 60 125 Z" fill="#202020"/><path d="M180 75 L275 70 L260 125 Q230 145 190 130 Z" fill="#202020"/><path d="M140 84 Q160 76 180 84" fill="none" stroke="#202020" stroke-width="8"/>`;
+ return "data:image/svg+xml;charset=UTF-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 210">${common}${art}</svg>`);
+}
+
+function makePrompt(){
+ const pantsText = selectedPants
+   ? `Replace only his pants with ${selectedPants[1]}, featuring a ${selectedPants[3]}. If the selected item is shorts, use the exact short-pants silhouette shown in the selected reference thumbnail: elastic waistband with drawstring, relaxed straight-leg shape, curved front pockets, lightweight soft fabric, and a hem that clearly ends above the knee. The shorts must be visibly above-knee, not knee-length and not below the knee. Preserve realistic fabric folds, proportions, and subtle stitching.`
+   : `Keep the man's original pants completely unchanged.`;
+ const accessoryText = selectedAccessory
+   ? selectedAccessory.prompt
+   : `Keep the man's original rings, glasses, sunglasses, and other non-watch accessories unchanged. Do not add, remove, or replace them.`;
+ const watchText = selectedWatch
+   ? selectedWatch.prompt + ` The selected watch must replace the original watch on the same wrist; do not create a second watch and do not place it on the wrong wrist.`
+   : `Keep the man's original wristwatch completely unchanged. Do not add a second watch.`;
+ return `Use Image 1 as the original photo and Image 2 as the upper-clothing reference. The primary purpose is to replace ONLY the man's upper clothing in Image 1 with the upper clothing shown in Image 2. Image 2 is a reference for the upper garment only, not for the man, pose, body, face, background, camera, or overall scene. Reproduce the upper garment from Image 2 accurately, including its exact design, color, material, texture, fit, stitching, logo, pattern, collar, sleeves, hem shape, and visible details. Do not copy any pants, lower-body clothing, footwear, accessories, person, background, or other elements from Image 2. The upper clothing must remain OUTSIDE the pants: do not tuck the shirt, T-shirt, polo, jacket, sweater, or any other upper garment into the waistband. Do not insert any part of the upper garment into the pants, do not create a tucked-in appearance, and keep the garment hem naturally hanging over the waistband with realistic drape and fabric folds. ${pantsText} ${accessoryText} ${watchText} Keep the man's face, facial identity, hair, skin tone, body proportions, expression, pose, hands, footwear, background, lighting, camera angle, framing, and overall composition from Image 1 unchanged unless specifically affected by the selected clothing or accessory. Do not redesign, restyle, or add extra clothing or accessories beyond the selected options. Make the final outfit look naturally worn, correctly positioned, proportional, clean, and photorealistic.`;
+}
+
+let currentCategory="";
+function getCategory(name){
+ const n=name.toLowerCase();
+ if(n.includes("formal")) return "Formal";
+ if(n.includes("chinos")) return "Chinos";
+ if(n.includes("corduroy")) return "Corduroy";
+ if(n.includes("jeans") || n.includes("denim")) return "Jeans / Denim";
+ if(n.includes("cargo 3/4")) return "Cargo 3/4";
+ if(n.includes("shorts") || n.includes("shortpants") || n.includes("short")) return "Shortpants Outdoor";
+ return "Lainnya";
+}
+
+pants.forEach((p,i)=>{
+ const category=getCategory(p[0]);
+
+ if(category!==currentCategory){
+   currentCategory=category;
+   const divider=document.createElement("div");
+   divider.className="category-divider";
+   divider.innerHTML=`<span>${category}</span>`;
+   options.appendChild(divider);
+ }
+
+ const el=document.createElement("div");
+ el.className="option";
+ el.innerHTML=`<img class="pants-thumb" src="${p[2]}" alt="${p[0]}" loading="lazy" referrerpolicy="no-referrer"><div class="option-title">${p[0]}</div><div class="option-desc">${p[1]}</div>`;
+ const thumb=el.querySelector(".pants-thumb");
+ thumb.addEventListener("error",()=>{
+   if(thumb.dataset.fallbackApplied) return;
+   thumb.dataset.fallbackApplied="1";
+   thumb.src=pantsFallbackSVG(p[0]);
+ });
+ el.onclick=()=>{
+   document.querySelectorAll("#options .option").forEach(x=>x.classList.remove("active"));
+   el.classList.add("active");
+   selectedPants=p;
+   updatePromptState();
+ };
+ options.appendChild(el);
+});
+
+accessories.forEach((a)=>{
+ const el=document.createElement("div");
+ el.className="option accessory-option";
+ const thumb=a.img
+   ? `<img class="pants-thumb accessory-thumb accessory-photo" src="${a.img}" alt="${a.name}" loading="lazy" referrerpolicy="no-referrer">`
+   : `<img class="pants-thumb accessory-thumb" src="${accessorySVG(a.icon)}" alt="${a.name}">`;
+ el.innerHTML=`${thumb}<div class="option-title">${a.name}</div><div class="option-desc">${a.desc}</div>`;
+ el.onclick=()=>{
+   document.querySelectorAll(".accessory-option").forEach(x=>x.classList.remove("active"));
+   el.classList.add("active");
+   selectedAccessory=a;
+   updatePromptState();
+ };
+ accessoryOptions.appendChild(el);
+});
+
+watches.forEach((w)=>{
+ const el=document.createElement("div");
+ el.className="option accessory-option";
+ const thumb=w.img
+   ? `<img class="pants-thumb accessory-thumb accessory-photo" src="${w.img}" alt="${w.name}" loading="lazy" referrerpolicy="no-referrer">`
+   : `<div class="pants-thumb accessory-thumb"></div>`;
+ el.innerHTML=`${thumb}<div class="option-title">${w.name}</div><div class="option-desc">${w.desc}</div>`;
+ el.onclick=()=>{
+   document.querySelectorAll("#watchOptions .accessory-option").forEach(x=>x.classList.remove("active"));
+   el.classList.add("active");
+   selectedWatch=w;
+   updatePromptState();
+ };
+ watchOptions.appendChild(el);
+});
+
+document.getElementById("topRef").addEventListener("change",function(e){
+ const file=e.target.files[0];
+ const img=document.getElementById("preview");
+ if(!file){
+   topReferenceSelected=false;
+   img.removeAttribute("src");
+   img.style.display="none";
+   updatePromptState();
+   return;
+ }
+ // Upload hanya untuk menampilkan preview; file tidak dibaca ke dalam prompt.
+ img.src=URL.createObjectURL(file);
+ img.style.display="block";
+ topReferenceSelected=true;
+ updatePromptState();
+});
+
+function selectionsReady(){
+ // Foto referensi atasan hanya untuk display/preview.
+ // Prompt default tetap aktif tanpa perlu upload foto.
+ return true;
+}
+
+function applyTheme(theme){
+ document.body.classList.toggle("dark", theme === "dark");
+ const btn=document.getElementById("themeToggle");
+ if(btn) btn.textContent = theme === "dark" ? "☀️ Light" : "🌙 Dark";
+ localStorage.setItem("fashionPromptTheme", theme);
+}
+function toggleTheme(){
+ const next=document.body.classList.contains("dark") ? "light" : "dark";
+ applyTheme(next);
+}
+const savedTheme=localStorage.getItem("fashionPromptTheme") || "dark";
+applyTheme(savedTheme);
+
+function updatePromptState(){
+ const copyBtn=document.getElementById("copyBtn");
+ copyBtn.disabled=false;
+ promptBox.value=makePrompt();
+ const optional=[];
+ if(!selectedPants) optional.push("celana asli dipertahankan");
+ if(!selectedAccessory) optional.push("aksesoris non-jam asli dipertahankan");
+ if(!selectedWatch) optional.push("jam tangan asli dipertahankan");
+ status.textContent="✓ Prompt default siap digunakan. Gambar 2 digunakan sebagai referensi atasan." + (optional.length ? " " + optional.join("; ") + "." : "");
+}
+
+async function copyPrompt(){
+ if(!selectionsReady()){
+   updatePromptState();
+   return;
+ }
+ if(!promptBox.value){
+   updatePromptState();
+   return;
+ }
+
+ const btn=document.getElementById("copyBtn");
+ const text=promptBox.value;
+
+ // Method 1: execCommand works from a normal button click,
+ // including many local file:// HTML pages where Clipboard API is blocked.
+ const temp=document.createElement("textarea");
+ temp.value=text;
+ temp.setAttribute("readonly","");
+ temp.style.position="fixed";
+ temp.style.top="0";
+ temp.style.left="-9999px";
+ temp.style.opacity="0";
+ document.body.appendChild(temp);
+
+ let copied=false;
+ try{
+   temp.focus();
+   temp.select();
+   temp.setSelectionRange(0,temp.value.length);
+   copied=document.execCommand("copy");
+ }catch(e){
+   copied=false;
+ }
+ temp.remove();
+
+ // Method 2: modern Clipboard API as an additional fallback.
+ if(!copied && navigator.clipboard){
+   try{
+     await navigator.clipboard.writeText(text);
+     copied=true;
+   }catch(e){
+     copied=false;
+   }
+ }
+
+ if(copied){
+   btn.textContent="✓ Copied!";
+   status.textContent="Prompt berhasil disalin ke clipboard.";
+   setTimeout(()=>{
+     btn.textContent="📋 Copy Prompt";
+     status.textContent="";
+   },1800);
+ }else{
+   status.textContent="Browser memblokir akses clipboard. Coba buka file di Chrome/Edge dan klik Copy Prompt sekali lagi.";
+   setTimeout(()=>status.textContent="",4000);
+ }
+}
+
+function resetAll(){
+ document.querySelectorAll(".option").forEach(x=>x.classList.remove("active"));
+ selectedPants=null;
+ selectedAccessory=null;
+ selectedWatch=null;
+ topReferenceSelected=false;
+ promptBox.value=makePrompt();
+ document.getElementById("topRef").value="";
+ document.getElementById("preview").style.display="none";
+ updatePromptState();
+}
+updatePromptState();
+</script>
+
+<script>
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const b = document.getElementById('installBtn');
+  if (b) b.style.display = 'inline-block';
+});
+window.addEventListener('appinstalled', () => {
+  deferredInstallPrompt = null;
+  const b = document.getElementById('installBtn');
+  if (b) b.style.display = 'none';
+});
+async function installApp(){
+  if (!deferredInstallPrompt) {
+    const status = document.getElementById('status');
+    if (status) status.textContent = 'Untuk memasang sebagai aplikasi, buka web ini melalui Chrome Android dari alamat HTTPS, lalu pilih Install app / Add to Home screen.';
+    return;
+  }
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  const b = document.getElementById('installBtn');
+  if (b) b.style.display = 'none';
+}
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
